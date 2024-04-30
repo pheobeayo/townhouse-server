@@ -1,7 +1,7 @@
 -- Add up migration script here
 create table users(
     email varchar not null primary key,
-    username varchar not null primary key,
+    username varchar not null unique,
     user_bio varchar,
     user_DOB varchar not null,
     password varchar not null,
@@ -12,11 +12,11 @@ create table users(
     user_street varchar not null,
     user_lang varchar not null,
     user_time_zone varchar not null,
-    user_postal_code not null,
+    user_postal_code int not null,
     user_lat_long varchar,
     user_country varchar,
     ip_address varchar not null unique,
-    last_time_loggedin varchar not null,
+    last_time_loggedin TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     communities varchar[],
     friends varchar[]
 );
@@ -24,7 +24,7 @@ create index user_idx on users (email);
 
 -- communities table
 create table communities(
-    owner_email varchar not null, 
+    creator_email varchar not null, 
     community_name varchar not null primary key,
     community_description varchar,
     community_tags varchar[],
@@ -32,4 +32,4 @@ create table communities(
     public boolean,
     members varchar[]
 );
-create index community_idx on communites (community_name);
+create index community_idx on communities (community_name);
