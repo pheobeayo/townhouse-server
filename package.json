@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "townhall-server",
   "version": "0.0.1",
-  "description": "server",
+  "description": "A community engagement platfrom server",
   "main": "build/index.js",
   "engines": {
     "node": ">=18.19.1"
@@ -14,10 +14,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/imrany/gemmie"
+    "url": "https://github.com/aimset-hackathon-team6/Townhall-server"
   },
   "keywords": [
-    "health"
+    "Community",
+    "Engagement"
   ],
   "author": "imrany",
   "license": "MPL-2.0",
