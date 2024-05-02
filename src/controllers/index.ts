@@ -1,4 +1,4 @@
-import pool from "../pg.ts"
+import pool from "../pg"
 
 export async function createAccount(req:any,res:any){
     try{
