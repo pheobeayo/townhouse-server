@@ -3,6 +3,7 @@ import cors from "cors";
 import router from "./routes"
 import { Server } from "socket.io"
 import websocket from "./websocket"
+import drive from "./drive"
 import { config } from "dotenv";
 config();
 
@@ -17,6 +18,7 @@ app.use(express.json())
 app.use(cors(cors_option))
 app.use(express.urlencoded({extended:false}))
 app.use('/api',router)
+app.use('/drive',drive)
 
 let port=process.env.PORT||8000
 let server=app.listen(port,()=>{
