@@ -1,6 +1,6 @@
 import express from "express"
 import { google } from "googleapis"
-import { writeFileSync } from "fs"
+import { readFileSync, writeFileSync } from "fs"
 import formidable from "formidable"
 import {createReadStream } from 'fs'
 
@@ -20,9 +20,10 @@ const drive=express.Router()
 const handleAuth=async(req:any,res:any,next:any)=>{
     try{
         if(req.headers.authorization){
-            let token=req.headers.authorization
-            const authenticate=oauth2Client.setCredentials(JSON.parse(token))
-            console.log(authenticate)
+            let userToken=req.headers.authorization
+            let appCreds:any=readFileSync('creds.json');
+            const authenticateApp=oauth2Client.setCredentials(JSON.parse(appCreds))
+            console.log(authenticateApp,userToken)
             next()
         }else{
             res.status(401).send({error:'No Token Available☠'})
