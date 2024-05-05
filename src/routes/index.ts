@@ -43,6 +43,6 @@ router.post("/sign_up",createAccount)
 router.post('/sign_in',login)
 router.get('/users',protectUser,getUsers)
 router.get('/authenticate/:access_token', authenticateUserWithAccessToken)
-router.get('/user/:email',protectUser,getUserDetails)
+router.get('/users/:email',protectUser,getUserDetails)
 
 export default router;
