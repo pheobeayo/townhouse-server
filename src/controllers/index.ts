@@ -12,7 +12,7 @@ const gmail:any = google.gmail({
     version: 'v1',
     auth: new google.auth.GoogleAuth({
         keyFile: `${SERVICE_ACCOUNT}`,
-        scope:['https://www.googleapis.com/auth/gmail.send']
+        scopes:['https://www.googleapis.com/auth/gmail.send']
     })
 });
 
@@ -24,10 +24,10 @@ function createVerificationCode(id:string){
     return code
 }
 
-async function sendEmail(subject:string,text:string){
+async function sendEmail(emailTo:any,subject:string,text:string){
     try{
         let email={
-            to:`${email}`,
+            to:`${emailTo}`,
             from:`${process.env.TRANSPORTER_EMAIL}`,
             subject,
             text
@@ -51,7 +51,7 @@ export async function verifyEmail(req:any,res:any){
 
         pool.query('SELECT * FROM users WHERE email = $1',[email],(error,results)=>{
         if(!results.rows[0]){
-            sendEmail(`Townhouse verification code`,`Your verification code ${code}`
+            sendEmail(email,`Townhouse verification code`,`Your verification code ${code}`
 )
         }else{
             res.send({error:`This account already exist!`})
@@ -95,7 +95,7 @@ export async function createAccount(req:any,res:any){
 export async function login(req:any,res:any){
     try{
         const {email, password, user_lat_long, ip_address, last_time_loggedin, user_browser}=req.body
-        if(email&&password&&last_time_loggedin,ip_address){
+        if(email&&password&&last_time_loggedin&&ip_address){
             pool.query('SELECT * FROM users WHERE email = $1',[email], async(error,results)=>{
                 if(error){
                     console.log(error)
@@ -133,7 +133,7 @@ export async function login(req:any,res:any){
     }
 }
 
-export async function getUsers(req:Req,res:any){
+export async function getUsers(req:any,res:any){
     try {
         pool.query('SELECT * FROM users', (error, results) => {
             if (error) {
@@ -151,7 +151,7 @@ export async function getUsers(req:Req,res:any){
 
 export async function protectUser(req:any,res:any,next:any){
     let token
-    if(rea.headers.authorization&&req.headers.authorization.startsWith('Bearer')){
+    if(req.headers.authorization&&req.headers.authorization.startsWith('Bearer')){
         try{
             token=req.headers.authorization.split(' ')[1]
             verify(token,`${process.env.JWT_SECRET}`)
