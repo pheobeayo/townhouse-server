@@ -66,7 +66,7 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
                         if(error){
                             console.log(error)
                         }else{
-                            let access_token:string=userProfile.access_token
+                            let access_token=userProfile.accessToken
                             let stringifyData=JSON.stringify(access_token)
                             res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
                         }
@@ -77,7 +77,7 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
                         if(error){
                             console.log(error)
                         }else{
-                            let access_token:string=results.rows[0].access_token
+                            let access_token=results.rows[0].access_token
                             let stringifyData=JSON.stringify(access_token)
                             res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
                         }

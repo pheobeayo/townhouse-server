@@ -65,7 +65,7 @@ export async function verifyEmail(req:any,res:any){
 export async function createAccount(req:any,res:any){
     try{
         const {username, email, password, user_browser, provider, ip_address, last_time_loggedin}=req.body
-    if (username&&email&&password) {
+        if (username&&email&&password) {
             const salt=await genSalt(10);
             const hashedPassword=await hash(password,salt);
             pool.query('SELECT * FROM users WHERE email=$1',[email],(error,results)=>{
@@ -73,19 +73,22 @@ export async function createAccount(req:any,res:any){
                     console.log(error)
                 }else{
                     if(results.rows[0].email){
-                        res.status(408).send(error:`This account exists!, Try logging in`)
+                        res.status(408).send({error:`This account exists!, Try logging in`})
                     }else{
-                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [`@${username}`, email, hashedPassword, last_time_loggedin, user_browser], async(error:any, results) => {
+                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser],(error, results) => {
                             if (error) {
+                                console.log(error)
                                 res.status(408).send({error:`Account using ${email} already exist!`})
                             }else{
                                 res.status(201).send({
-                                msg:`Welcome ${results.rows[0].username}`,
-                                data:{
-                                username:results.rows[0].username,
-                                email:results.rows[0].email,
-                                photo:results.rows[0].photo,
-                                access_token:generateUserToken(results.rows[0].id)
+                                    msg:`Welcome ${results.rows[0].username}`,
+                                    data:{
+                                        username:results.rows[0].username,
+                                        email:results.rows[0].email,
+                                        photo:results.rows[0].photo,
+                                        access_token:generateUserToken(results.rows[0].id)
+                                    }
+                                })
                             }
                         })
                     }
