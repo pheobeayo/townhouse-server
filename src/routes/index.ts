@@ -4,7 +4,12 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { config } from "dotenv";
 import { Prompt, PromptResponse } from "../types";
 import {
+    verifyEmail,
     createAccount,
+    login,
+    protectUser,
+    getUsers,
+    getUserDetails,
 } from "../controllers"
 config();
 
@@ -31,6 +36,11 @@ router.post("/prompt",async(req:Prompt,res:any)=>{
         console.log(error.message)
     }
 })
- 
+
+router.post('/verify',verifyEmail)
 router.post("/sign_up",createAccount)
+router.post('/sign_in',login)
+router.get('/users',protectUser,getUsers)
+router.get('/user/:email',protectUser,getUserDetails)
+
 export default router;

@@ -1,16 +1,17 @@
 import pool from "../pg"
 import { google } from "googleapis"
+import { join } from "path"
 import { authenticate } from "@google-cloud/local-auth"
 import {createReadStream } from 'fs'
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
 
-
+const SERVICE_ACCOUNT=join(process.cwd(),'service_account.json')
 const gmail:any = google.gmail({
     version: 'v1',
     auth: new google.auth.GoogleAuth({
-        keyFile: `/service_account.json`,
+        keyFile: `${SERVICE_ACCOUNT}`,
         scope:['https://www.googleapis.com/auth/gmail.send']
     })
 });
@@ -25,19 +26,19 @@ function createVerificationCode(id:string){
 
 async function sendEmail(subject:string,text:string){
     try{
-     let email={
-        to:`${email}`,
-        from:`${process.env.TRANSPORTER_EMAIL}`,
-        subject,
-        text
-     }
+        let email={
+            to:`${email}`,
+            from:`${process.env.TRANSPORTER_EMAIL}`,
+            subject,
+            text
+        }
         
-            let result=await gmail.users.messages.send({
-                userId:`${process.env.TRANSPORTER_EMAIL}`,
-                resource:email,
-            })
+        let result=await gmail.users.messages.send({
+            userId:`${process.env.TRANSPORTER_EMAIL}`,
+            resource:email,
+        })
 
-            console.log("email sent successfully", result.data)
+        console.log("email sent successfully", result.data)
     }catch(error:any){
         console.log('Error sending email:', error)
     }
@@ -63,13 +64,35 @@ export async function verifyEmail(req:any,res:any){
 
 export async function createAccount(req:any,res:any){
     try{
-        const {username, email, password}=req.body
+        const {username, email, password, user_browser, ip_address, last_time_loggedin}=req.body
+    if (username&&email&&password) {
+            const salt=await genSalt(10);
+            const hashedPassword=await hash(password,salt);
+            pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser) VALUES ($1, $2, $3, $4, $5) RETURNING *', [`@${username}`, email, hashedPassword, last_time_loggedin, user_browser], async(error:any, results) => {
+                if (error) {
+                    res.status(408).send({error:`Account using ${email} already exist!`})
+                }else{
+                    res.status(201).send({
+                        msg:`Welcome ${results.rows[0].username}`,
+                        data:{
+                            username:results.rows[0].username,
+                            email:results.rows[0].email,
+                            photo:results.rows[0].photo,
+                            access_token:generateUserToken(results.rows[0].id)
+                        }
+                    })
+                }
+            })
+            
+        } else {
+            res.status(403).send({error:"Fill all the required fields!!"})
+        }
     }catch(error:any){
         res.status(501).send({error:error.message})
     }
 }
 
-export async function Login(req:any,res:any){
+export async function login(req:any,res:any){
     try{
         const {email, password, user_lat_long, ip_address, last_time_loggedin, user_browser}=req.body
         if(email&&password&&last_time_loggedin,ip_address){
@@ -87,21 +110,44 @@ export async function Login(req:any,res:any){
                                     res.status(201).send({
                                         data:{
                                             username:results.rows[0].username,
+                                            photo:results.rows[0].photo,
                                             email:results.rows[0].email,
                                             access_token:generateUserToken(results.rows[0].id)
                                         }
                                     })
                                 }
                             })
-                        }
+                        }else if(await compare(password,results.rows[0].password)===false){
+                            res.status(401).send({error:'You have enter the wrong password'})
+                        } 
+                    }else{
+                        res.status(404).send({error:`This account does not exist!`})
                     }
                 }
             })
+        }else{
+            res.status(403).send({error:"Fill all the required fields!!"})
         }
     }catch(error:any){
         res.status(501).send({error:error.message})
     }
 }
+
+export async function getUsers(req:Req,res:any){
+    try {
+        pool.query('SELECT * FROM users', (error, results) => {
+            if (error) {
+                console.log(error)
+                res.status(404).send({error:`Failed to get users.`})
+            }else{
+                res.status(200).json(results.rows)
+            }
+        })
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+}
+
 
 export async function protectUser(req:any,res:any,next:any){
     let token
