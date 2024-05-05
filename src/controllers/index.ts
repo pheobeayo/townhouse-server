@@ -1,26 +1,60 @@
 import pool from "../pg"
+import { google } from "googleapis"
+import { authenticate } from "@google-cloud/local-auth"
+import {createReadStream } from 'fs'
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
+
+
+const gmail:any = google.gmail({
+    version: 'v1',
+    auth: new google.auth.GoogleAuth({
+        keyFile: `/service_account.json`,
+        scope:['https://www.googleapis.com/auth/gmail.send']
+    })
+});
+
 
 function createVerificationCode(id:string){
     let date=new Date()
     let min=date.getMinutes()<10?`0${date.getMinutes()}`:date.getMinutes()
     let code=`${min}${date.getFullYear()}`
+    return code
+}
+
+async function sendEmail(subject:string,text:string){
+    try{
+     let email={
+        to:`${email}`,
+        from:`${process.env.TRANSPORTER_EMAIL}`,
+        subject,
+        text
+     }
+        
+            let result=await gmail.users.messages.send({
+                userId:`${process.env.TRANSPORTER_EMAIL}`,
+                resource:email,
+            })
+
+            console.log("email sent successfully", result.data)
+    }catch(error:any){
+        console.log('Error sending email:', error)
+    }
 }
 
 export async function verifyEmail(req:any,res:any){
     try{
-        const {email}=req.body
+        const {email, code}=req.body
+        //let code=createVerificationCode()
+
         pool.query('SELECT * FROM users WHERE email = $1',[email],(error,results)=>{
         if(!results.rows[0]){
-            let mailTransporter=createTransport({
-                service:'gmail',
-                auth:{
-
-                }
-            })
-        }else{}
+            sendEmail(`Townhouse verification code`,`Your verification code ${code}`
+)
+        }else{
+            res.send({error:`This account already exist!`})
+        }
         })
     }catch(error:any){
         res.status(501).send({error:error.message})
@@ -29,7 +63,7 @@ export async function verifyEmail(req:any,res:any){
 
 export async function createAccount(req:any,res:any){
     try{
-        const {}=req.body
+        const {username, email, password}=req.body
     }catch(error:any){
         res.status(501).send({error:error.message})
     }
@@ -37,8 +71,56 @@ export async function createAccount(req:any,res:any){
 
 export async function Login(req:any,res:any){
     try{
-        const {email, password}=req.body
+        const {email, password, user_lat_long, ip_address, last_time_loggedin, user_browser}=req.body
+        if(email&&password&&last_time_loggedin,ip_address){
+            pool.query('SELECT * FROM users WHERE email = $1',[email], async(error,results)=>{
+                if(error){
+                    console.log(error)
+                    res.status(400).send({error:'Failed to sign in, try again!'})
+                }else{
+                    if(results.rows[0]){
+                        if(results.rows[0].email&&await compare(password,results.rows[0].password)){
+                            pool.query('UPDATE users SET last_time_loggedin=$1, user_browser= $2 WHERE email = $3 RETURNING *',[last_time_loggedin,user_browser,results.rows[0].email],(error,results)=>{
+                                if(error){
+                                    console.log(error)
+                                }else{
+                                    res.status(201).send({
+                                        data:{
+                                            username:results.rows[0].username,
+                                            email:results.rows[0].email,
+                                            access_token:generateUserToken(results.rows[0].id)
+                                        }
+                                    })
+                                }
+                            })
+                        }
+                    }
+                }
+            })
+        }
     }catch(error:any){
         res.status(501).send({error:error.message})
     }
+}
+
+export async function protectUser(req:any,res:any,next:any){
+    let token
+    if(rea.headers.authorization&&req.headers.authorization.startsWith('Bearer')){
+        try{
+            token=req.headers.authorization.split(' ')[1]
+            verify(token,`${process.env.JWT_SECRET}`)
+            next()
+        }catch(error:any){
+            res.status(401).send({error:'Not Authorised'})
+        }
+    }
+    if(!token){
+        res.status(401).send({error:'No Token Available'})
+    }
+}
+
+function generateUserToken(id:string){
+    return sign({id},`${process.env.JWT_SECRET}`,{
+        expiresIn:'10d'
+    })
 }
