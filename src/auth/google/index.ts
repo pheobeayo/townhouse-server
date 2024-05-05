@@ -62,9 +62,15 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
             }else{
                 if(results.rows[0]){
                     //sign in
-                    let access_token:string=results.rows[0].access_token
-                    let stringifyData=JSON.stringify(access_token)
-                    res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
+                    pool.query('UPDATE users SET access_token=$1 WHERE email=$2',[userProfile.accessToken,results.rows[0].email],(error,results)=>{
+                        if(error){
+                            console.log(error)
+                        }else{
+                            let access_token:string=userProfile.access_token
+                            let stringifyData=JSON.stringify(access_token)
+                            res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
+                        }
+                    })
                 }else{
                     //sign up
                     pool.query('INSERT INTO users (username,email,password,email_verified,provider,access_token,refresh_token,photo,user_lang,user_browser) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[userProfile.username,userProfile.email,userProfile.provider,userProfile.emailVerified,userProfile.provider,userProfile.accessToken,userProfile.refreshToken,userProfile.photo,userProfile.userLang,userProfile.userBrowser],(error,results)=>{
