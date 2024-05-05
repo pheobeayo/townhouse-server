@@ -208,6 +208,7 @@ export async function authenticateUserWithAccessToken(req:any,res:any){
         pool.query('SELECT * FROM users WHERE access_token =$1 AND provider=$2',[access_token,'google'],(error,results)=>{
             if(error){
                 console.log(error)
+                res.status(501).send({error:error})
             }else{
                 if(!results.rows[0]){
                     res.status(404).send({error:`This account does not exist!`})
