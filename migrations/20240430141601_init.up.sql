@@ -1,8 +1,12 @@
 -- Add up migration script here
 create table users(
     email varchar not null primary key,
+    email_verified boolean DEFAULT FALSE,
     username varchar not null unique,
+    provider varchar not null,
     user_bio varchar,
+    access_token varchar,
+    refresh_token varchar,
     user_DOB varchar,
     password varchar not null,
     phone_number int unique,

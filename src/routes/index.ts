@@ -10,6 +10,7 @@ import {
     protectUser,
     getUsers,
     getUserDetails,
+    authenticateUserWithAccessToken,
 } from "../controllers"
 config();
 
@@ -41,6 +42,7 @@ router.post('/verify',verifyEmail)
 router.post("/sign_up",createAccount)
 router.post('/sign_in',login)
 router.get('/users',protectUser,getUsers)
+router.get('/authenticate/:access_token', authenticateUserWithAccessToken)
 router.get('/user/:email',protectUser,getUserDetails)
 
 export default router;

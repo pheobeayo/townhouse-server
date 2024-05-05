@@ -64,26 +64,33 @@ export async function verifyEmail(req:any,res:any){
 
 export async function createAccount(req:any,res:any){
     try{
-        const {username, email, password, user_browser, ip_address, last_time_loggedin}=req.body
+        const {username, email, password, user_browser, provider, ip_address, last_time_loggedin}=req.body
     if (username&&email&&password) {
             const salt=await genSalt(10);
             const hashedPassword=await hash(password,salt);
-            pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser) VALUES ($1, $2, $3, $4, $5) RETURNING *', [`@${username}`, email, hashedPassword, last_time_loggedin, user_browser], async(error:any, results) => {
-                if (error) {
-                    res.status(408).send({error:`Account using ${email} already exist!`})
+            pool.query('SELECT * FROM users WHERE email=$1',[email],(error,results)=>{
+                if(error){
+                    console.log(error)
                 }else{
-                    res.status(201).send({
-                        msg:`Welcome ${results.rows[0].username}`,
-                        data:{
-                            username:results.rows[0].username,
-                            email:results.rows[0].email,
-                            photo:results.rows[0].photo,
-                            access_token:generateUserToken(results.rows[0].id)
-                        }
-                    })
+                    if(results.rows[0].email){
+                        res.status(408).send(error:`This account exists!, Try logging in`)
+                    }else{
+                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [`@${username}`, email, hashedPassword, last_time_loggedin, user_browser], async(error:any, results) => {
+                            if (error) {
+                                res.status(408).send({error:`Account using ${email} already exist!`})
+                            }else{
+                                res.status(201).send({
+                                msg:`Welcome ${results.rows[0].username}`,
+                                data:{
+                                username:results.rows[0].username,
+                                email:results.rows[0].email,
+                                photo:results.rows[0].photo,
+                                access_token:generateUserToken(results.rows[0].id)
+                            }
+                        })
+                    }
                 }
-            })
-            
+            })       
         } else {
             res.status(403).send({error:"Fill all the required fields!!"})
         }
@@ -184,6 +191,34 @@ export async function getUserDetails(req:any,res:any){
                     })
                 }else{
                     res.status(404).send({error:`Account associated with the email address ${email} does not exist!`})
+                }
+            }
+        })
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+}
+
+export async function authenticateUserWithAccessToken(req:any,res:any){
+    try{
+        let {access_token}=req.params
+        pool.query('SELECT * FROM users WHERE access_token =$1 AND provider=$2',[access_token,'google'],(error,results)=>{
+            if(error){
+                console.log(error)
+            }else{
+                if(!results.rows[0]){
+                    res.status(404).send({error:`This account does not exist!`})
+                }else{
+                    let data:any={
+                        username:results.rows[0].username,
+                        email:results.rows[0].email,
+                        photo:results.rows[0].photo,
+                        access_token:results.rows[0].access_token
+                    }
+                    res.status(400).send({
+                        msg:`Authenticated successfully`,
+                        data
+                    })
                 }
             }
         })

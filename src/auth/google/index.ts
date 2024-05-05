@@ -1,5 +1,7 @@
 import express from "express"
 import passport from "passport"
+import pool from "../../pg"
+import { userDetails } from "../../types"
 import { Strategy } from "passport-google-oauth20"
 
 let googleOAuth=express.Router()
@@ -42,6 +44,41 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
         const refreshToken = req.user.refreshToken; // Refresh token (if available)
         const profile = req.user; // User profile details
         
+        let userProfile:userDetails={
+            username:profile._json.name,
+            photo:profile._json.picture,
+            email:profile._json.email,
+            emailVerified:profile._json.email_verified,
+            userLang:profile._json.locale,
+            provider:profile._json.provider,
+            userBrowser:req.rawHeaders[3],
+            accessToken,
+            refreshToken,
+        }
+        pool.query('SELECT * FROM users WHERE email =$1',[userProfile.email],(error,results)=>{
+            if(error){
+                console.log(error)
+                res.status(404).send({error:``})
+            }else{
+                if(results.rows[0]){
+                    //sign in
+                    let access_token:string=results.rows[0].access_token
+                    let stringifyData=JSON.stringify(access_token)
+                    res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
+                }else{
+                    //sign up
+                    pool.query('INSERT INTO users (username,email,password,email_verified,provider,access_token,refresh_token,photo,user_lang,user_browser) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[userProfile.username,userProfile.email,userProfile.provider,userProfile.emailVerified,userProfile.provider,userProfile.accessToken,userProfile.refreshToken,userProfile.photo,userProfile.userLang,userProfile.userBrowser],(error,results)=>{
+                        if(error){
+                            console.log(error)
+                        }else{
+                            let access_token:string=results.rows[0].access_token
+                            let stringifyData=JSON.stringify(access_token)
+                            res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
+                        }
+                    })
+                }
+            }
+        })
         //res.redirect('/dashboard')
         res.send('Logged in with Google');
     }catch(error:any){
