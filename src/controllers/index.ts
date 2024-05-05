@@ -119,6 +119,33 @@ export async function protectUser(req:any,res:any,next:any){
     }
 }
 
+export async function getUserDetails(req:any,res:any){
+    try {
+        const { email } = req.params
+        pool.query('SELECT * FROM users WHERE email = $1', [email], (error, results) => {
+            if (error) {
+                console.log(error)
+                res.status(404).send({error:`Account associated with the email address ${email} does not exist!`})
+            }else{
+                if(results.rows[0]){
+                    res.status(200).json({
+                        data:{
+                            username:results.rows[0].username,
+                            email:results.rows[0].email,
+                            photo:results.rows[0].photo,
+                            token:generateUserToken(results.rows[0].id)
+                        }
+                    })
+                }else{
+                    res.status(404).send({error:`Account associated with the email address ${email} does not exist!`})
+                }
+            }
+        })
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+}
+
 function generateUserToken(id:string){
     return sign({id},`${process.env.JWT_SECRET}`,{
         expiresIn:'10d'
