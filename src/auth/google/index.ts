@@ -61,11 +61,11 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
             }else{
                 if(results.rows[0]){
                     //sign in
-                    pool.query('UPDATE users SET access_token=$1 WHERE email=$2 RETURNING *',[generateUserToken(results.rows[0].provider),results.rows[0].email],(error,results)=>{
+                    let access_token=generateUserToken(results.rows[0].provider)
+                    pool.query('UPDATE users SET access_token=$1 WHERE email=$2 RETURNING *',[access_token,results.rows[0].email],(error,results)=>{
                         if(error){
                             console.log(error)
                         }else{
-                            let access_token=generateUserToken(results.rows[0].provider)
                             let stringifyData=JSON.stringify(access_token)
                             res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
                         }
