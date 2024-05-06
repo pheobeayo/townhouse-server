@@ -86,7 +86,7 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
             }
         })
         //res.redirect('/dashboard')
-        res.send('Logged in with Google');
+        //res.send('Logged in with Google');
     }catch(error:any){
         res.status(401).send({error:error.message})
     }
