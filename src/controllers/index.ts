@@ -205,7 +205,7 @@ export async function getUserDetails(req:any,res:any){
 export async function authenticateUserWithAccessToken(req:any,res:any){
     try{
         let {access_token}=req.params
-        pool.query("SELECT * FROM users WHERE access_token=$1",[access_token],(error,results)=>{
+        pool.query("SELECT * FROM users WHERE access_token=$1 AND provider='google'",[access_token],(error,results)=>{
             if(error){
                 console.log(error)
                 res.status(501).send({error:error})
