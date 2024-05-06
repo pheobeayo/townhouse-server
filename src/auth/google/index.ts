@@ -61,11 +61,11 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
             }else{
                 if(results.rows[0]){
                     //sign in
-                    pool.query('UPDATE users SET access_token=$1 WHERE email=$2',[generateUserToken(results.rows[0].id),results.rows[0].email],(error,results)=>{
+                    pool.query('UPDATE users SET access_token=$1 WHERE email=$2 RETURNING *',[generateUserToken(results.rows[0].provider),results.rows[0].email],(error,results)=>{
                         if(error){
                             console.log(error)
                         }else{
-                            let access_token=generateUserToken(results.rows[0].id)
+                            let access_token=generateUserToken(results.rows[0].provider)
                             let stringifyData=JSON.stringify(access_token)
                             res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
                         }
@@ -77,8 +77,14 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
                             console.log(error)
                         }else{
                             let access_token=generateUserToken(results.rows[0].provider)
-                            let stringifyData=JSON.stringify(access_token)
+                            pool.query('UPDATE users SET access_token=$1 WHERE email=$2',[access_token,results.rows[0].email],(error,results)=>{
+                                if(error){
+                                    console.log(error)
+                                }else{
+                                    let stringifyData=JSON.stringify(access_token) 
                             res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
+                                }
+                            })
                         }
                     })
                 }
