@@ -50,7 +50,7 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
             email:profile._json.email,
             emailVerified:profile._json.email_verified,
             userLang:profile._json.locale,
-            provider:profile._json.provider,
+            provider:profile.provider,
             userBrowser:req.rawHeaders[3],
             accessToken,
             refreshToken,
