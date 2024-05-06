@@ -39,7 +39,7 @@ googleOAuth.get("/google",
 // Google OAuth 2.0 callback/redirect route
 googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}),async(req:any,res:any)=>{
     try{
-        console.log(req)
+        //console.log(req)
         // Successful authentication, redirect to a different page or send a response
         const accessToken = req.user.accessToken; // Access token
         const refreshToken = req.user.refreshToken; // Refresh token (if available)
