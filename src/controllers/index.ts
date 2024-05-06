@@ -231,7 +231,7 @@ export async function authenticateUserWithAccessToken(req:any,res:any){
     }
 }
 
-function generateUserToken(id:string){
+export function generateUserToken(id:string){
     return sign({id},`${process.env.JWT_SECRET}`,{
         expiresIn:'10d'
     })
