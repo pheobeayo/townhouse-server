@@ -64,7 +64,7 @@ export async function verifyEmail(req:any,res:any){
 
 export async function createAccount(req:any,res:any){
     try{
-        const {username, email, password, user_browser, provider, ip_address, last_time_loggedin}=req.body
+        const {username, email, password, user_browser, ip_address, last_time_loggedin}=req.body
         if (username&&email&&password) {
             const salt=await genSalt(10);
             const hashedPassword=await hash(password,salt);
@@ -75,7 +75,7 @@ export async function createAccount(req:any,res:any){
                     if(results.rows[0].email){
                         res.status(408).send({error:`This account exists!, Try logging in`})
                     }else{
-                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser],(error, results) => {
+                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser,'townhouse'],(error, results) => {
                             if (error) {
                                 console.log(error)
                                 res.status(408).send({error:`Account using ${email} already exist!`})
@@ -86,7 +86,7 @@ export async function createAccount(req:any,res:any){
                                         username:results.rows[0].username,
                                         email:results.rows[0].email,
                                         photo:results.rows[0].photo,
-                                        access_token:generateUserToken(results.rows[0].id)
+                                        access_token:generateUserToken(results.rows[0].provider)
                                     }
                                 })
                             }
@@ -122,7 +122,7 @@ export async function login(req:any,res:any){
                                             username:results.rows[0].username,
                                             photo:results.rows[0].photo,
                                             email:results.rows[0].email,
-                                            access_token:generateUserToken(results.rows[0].id)
+                                            access_token:generateUserToken(results.rows[0].provider)
                                         }
                                     })
                                 }
@@ -189,7 +189,7 @@ export async function getUserDetails(req:any,res:any){
                             username:results.rows[0].username,
                             email:results.rows[0].email,
                             photo:results.rows[0].photo,
-                            token:generateUserToken(results.rows[0].id)
+                            access_token:generateUserToken(results.rows[0].provider)
                         }
                     })
                 }else{
