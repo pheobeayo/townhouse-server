@@ -76,7 +76,7 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
                         if(error){
                             console.log(error)
                         }else{
-                            let access_token=generateUserToken(results.rows[0].id)
+                            let access_token=generateUserToken(results.rows[0].provider)
                             let stringifyData=JSON.stringify(access_token)
                             res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
                         }
