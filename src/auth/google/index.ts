@@ -1,6 +1,7 @@
 import express from "express"
 import passport from "passport"
 import pool from "../../pg"
+import { generateUserToken } from "../../controllers" 
 import { userDetails } from "../../types"
 import { Strategy } from "passport-google-oauth20"
 
@@ -52,8 +53,6 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
             userLang:profile._json.locale,
             provider:profile.provider,
             userBrowser:req.rawHeaders[3],
-            accessToken,
-            refreshToken,
         }
         pool.query('SELECT * FROM users WHERE email =$1',[userProfile.email],(error,results)=>{
             if(error){
@@ -62,11 +61,11 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
             }else{
                 if(results.rows[0]){
                     //sign in
-                    pool.query('UPDATE users SET access_token=$1 WHERE email=$2',[userProfile.accessToken,results.rows[0].email],(error,results)=>{
+                    pool.query('UPDATE users SET access_token=$1 WHERE email=$2',[generateUserToken(results.rows[0].id),results.rows[0].email],(error,results)=>{
                         if(error){
                             console.log(error)
                         }else{
-                            let access_token=userProfile.accessToken
+                            let access_token=generateUserToken(results.rows[0].id)
                             let stringifyData=JSON.stringify(access_token)
                             res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
                         }
