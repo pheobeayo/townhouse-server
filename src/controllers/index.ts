@@ -205,12 +205,11 @@ export async function getUserDetails(req:any,res:any){
 export async function authenticateUserWithAccessToken(req:any,res:any){
     try{
         let {access_token}=req.params
-        pool.query('SELECT * FROM users WHERE access_token =$1 AND provider=$2',[access_token,'google'],(error,results)=>{
+        pool.query('SELECT * FROM users WHERE access_token =$1 AND provider=$2 RETURNING *',[access_token,'google'],(error,results)=>{
             if(error){
                 console.log(error)
                 res.status(501).send({error:error})
             }else{
-                console.log(results.rows[0],access_token)
                 if(!results.rows[0]){
                     res.status(404).send({error:`This account does not exist!`})
                 }else{
