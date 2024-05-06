@@ -72,11 +72,11 @@ googleOAuth.get("/redirect",passport.authenticate('google',{failureRedirect:'/'}
                     })
                 }else{
                     //sign up
-                    pool.query('INSERT INTO users (username,email,password,email_verified,provider,access_token,refresh_token,photo,user_lang,user_browser) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',[userProfile.username,userProfile.email,userProfile.provider,userProfile.emailVerified,userProfile.provider,userProfile.accessToken,userProfile.refreshToken,userProfile.photo,userProfile.userLang,userProfile.userBrowser],(error,results)=>{
+                    pool.query('INSERT INTO users (username,email,password,email_verified,provider,photo,user_lang,user_browser) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',[userProfile.username,userProfile.email,userProfile.provider,userProfile.emailVerified,userProfile.provider,userProfile.photo,userProfile.userLang,userProfile.userBrowser],(error,results)=>{
                         if(error){
                             console.log(error)
                         }else{
-                            let access_token=results.rows[0].access_token
+                            let access_token=generateUserToken(results.rows[0].id)
                             let stringifyData=JSON.stringify(access_token)
                             res.redirect(`${process.env.CLIENT_URL}?access_token=${stringifyData}`)
                         }
