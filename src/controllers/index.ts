@@ -64,28 +64,30 @@ export async function verifyEmail(req:any,res:any){
 
 export async function createAccount(req:any,res:any){
     try{
-        const {username, email, password, user_browser, ip_address, last_time_loggedin}=req.body
-        if (username&&email&&password) {
+        const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const {username, email, password, user_city, user_postal_code, user_lang, user_time_zone, user_browser, last_time_loggedin,phone_number}=req.body
+        if (username&&email&&password&&phone_number) {
             const salt=await genSalt(10);
             const hashedPassword=await hash(password,salt);
-            pool.query('SELECT * FROM users WHERE email=$1',[email],(error,results)=>{
+            pool.query("SELECT * FROM users WHERE email=$1",[email],(error,results)=>{
                 if(error){
                     console.log(error)
                 }else{
                     if(results.rows[0].email){
                         res.status(408).send({error:`This account exists!, Try logging in`})
                     }else{
-                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser,'townhouse'],(error, results) => {
+                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider, ip_address, user_city, user_postal_code,user_lang) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser,'townhouse',clientIp,user_city,user_postl_code,user_lang,phone_number],(error, results) => {
                             if (error) {
                                 console.log(error)
                                 res.status(408).send({error:`Account using ${email} already exist!`})
                             }else{
                                 res.status(201).send({
-                                    msg:`Welcome ${results.rows[0].username}`,
+                                    msg:`Welcome to Townhouse`,
                                     data:{
                                         username:results.rows[0].username,
                                         email:results.rows[0].email,
                                         photo:results.rows[0].photo,
+                                        phone_number:results.rows[0].phone_number,
                                         access_token:generateUserToken(results.rows[0].provider)
                                     }
                                 })
@@ -104,20 +106,22 @@ export async function createAccount(req:any,res:any){
 
 export async function login(req:any,res:any){
     try{
-        const {email, password, user_lat_long, ip_address, last_time_loggedin, user_browser}=req.body
-        if(email&&password&&last_time_loggedin&&ip_address){
-            pool.query('SELECT * FROM users WHERE email = $1',[email], async(error,results)=>{
+        const clientIp= req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const {email, password, last_time_loggedin, user_browser}=req.body
+        if(email&&password&&last_time_loggedin){
+            pool.query("SELECT * FROM users WHERE email = $1 AND provider='townhouse'",[email], async(error,results)=>{
                 if(error){
                     console.log(error)
                     res.status(400).send({error:'Failed to sign in, try again!'})
                 }else{
                     if(results.rows[0]){
                         if(results.rows[0].email&&await compare(password,results.rows[0].password)){
-                            pool.query('UPDATE users SET last_time_loggedin=$1, user_browser= $2 WHERE email = $3 RETURNING *',[last_time_loggedin,user_browser,results.rows[0].email],(error,results)=>{
+                            pool.query('UPDATE users SET last_time_loggedin=$1, user_browser= $2, ip_address=$3 WHERE email = $4 RETURNING *',[last_time_loggedin,user_browser, clientIp,results.rows[0].email],(error,results)=>{
                                 if(error){
                                     console.log(error)
                                 }else{
                                     res.status(201).send({
+                                        msg:`Sign in successfully`,
                                         data:{
                                             username:results.rows[0].username,
                                             photo:results.rows[0].photo,
@@ -211,7 +215,7 @@ export async function authenticateUserWithAccessToken(req:any,res:any){
                 res.status(501).send({error:error})
             }else{
                 if(!results.rows[0]){
-                    res.status(404).send({error:`This account does not exist!`})
+                    res.status(404).send({error:`Not Authorized!`})
                 }else{
                     let data:any={
                         username:results.rows[0].username,
