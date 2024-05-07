@@ -11,7 +11,7 @@ const SERVICE_ACCOUNT=join(process.cwd(),'creds.json')
 
 async function authorize(){
     let client =await authenticate({
-        keyFilePath: `${SERVICE_ACCOUNT}`,
+        keyfilePath: `${SERVICE_ACCOUNT}`,
         scopes:['https://www.googleapis.com/auth/gmail.send', 'https://mail.google.com', 'https://www.googleapis.com/auth/gmail.compose', 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.readonly',]
     })
     return client
@@ -44,7 +44,7 @@ async function sendEmail(emailTo:any,subject:string,text:string){
             resource: message,
         })
 
-        console.log("email sent successfully", result.data)
+        console.log("email sent successfully", result)
     }catch(error:any){
         console.log('Error sending email:', error)
     }
