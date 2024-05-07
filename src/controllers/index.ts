@@ -2,7 +2,7 @@ import pool from "../pg"
 import { google } from "googleapis"
 import { join } from "path"
 import { authenticate } from "@google-cloud/local-auth"
-import {createReadStream } from 'fs'
+import {createReadStream, readFileSync } from 'fs'
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { createTransport } from "nodemailer";
@@ -28,7 +28,7 @@ function createVerificationCode(){
 async function sendEmail(emailTo:any,subject:string,text:string){
     try{
         let creds=JSON.parse(appCreds)
-        let taransporter=createTransport({
+        let transporter=createTransport({
             service:'gmail',
             auth:{
                 type:'OAuth2',
