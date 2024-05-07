@@ -42,7 +42,7 @@ async function sendEmail(emailTo:any,subject:string,text:string){
          // The body needs to be base64url encoded.
         const encodedMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         let result=await gmail.users.messages.send({
-            userId:`${process.env.TRANSPORTER_EMAIL}`,
+            userId:`me`,
         requestBody: {
             raw: encodedMessage,
         },
