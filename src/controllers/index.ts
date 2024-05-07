@@ -1,20 +1,7 @@
 import pool from "../pg"
-import { google } from "googleapis"
-import { join } from "path"
-import { authenticate } from "@google-cloud/local-auth"
-import {createReadStream, readFileSync } from 'fs'
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
-
-const oauth2Client = new google.auth.OAuth2(
-    process.env.CLIENT_ID,
-    process.env.CLIENT_SECRET,
-    process.env.REDIRECT_URL
-);
-
-let appCreds:any=readFileSync('creds.json');
-oauth2Client.setCredentials(JSON.parse(appCreds))
 
 
 function createVerificationCode(){
@@ -26,16 +13,11 @@ function createVerificationCode(){
 
 async function sendEmail(emailTo:any,subject:string,text:string){
     try{
-        let creds=JSON.parse(appCreds)
         let transporter=createTransport({
             service:'gmail',
             auth:{
-                type:'OAuth2',
                 user:`${process.env.TRANSPORTER_EMAIL}`,
-                clientId:`${process.env.CLIENT_ID}`,
-                clientSecret:`${process.env.CLIENT_SECRET}`,
-                refreshToken:`${creds.refresh_token}`,
-                accessToken:`${creds.access_token}`
+                pass:`${process.env.EMAIL_PASSWORD}`
             }
         })
 
