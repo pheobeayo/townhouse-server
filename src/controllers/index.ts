@@ -7,13 +7,18 @@ import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
 
-const SERVICE_ACCOUNT=join(process.cwd(),'service_account.json')
-const gmail = google.gmail({
-    version: 'v1',
-    auth: new google.auth.GoogleAuth({
-        keyFile: `${SERVICE_ACCOUNT}`,
+const SERVICE_ACCOUNT=join(process.cwd(),'creds.json')
+
+async function authorize(){
+    let client =await authenticate({
+        keyFilePath: `${SERVICE_ACCOUNT}`,
         scopes:['https://www.googleapis.com/auth/gmail.send', 'https://mail.google.com', 'https://www.googleapis.com/auth/gmail.compose', 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.readonly',]
     })
+    return client
+}
+const gmail = google.gmail({
+    version: 'v1',
+    auth: authorize()
 });
 
 
@@ -26,26 +31,19 @@ function createVerificationCode(){
 
 async function sendEmail(emailTo:any,subject:string,text:string){
     try{
-        // You can use UTF-8 encoding for the subject using the method below.
-        // You can also just use a plain string if you don't need anything fancy.
-        const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
-        const messageParts = [
-            `From: Townhouse <${process.env.TRANSPORTER_EMAIL}>`,
-            `To: <${emailTo}>`,
-            'Content-Type: text/html; charset=utf-8',
-            'MIME-Version: 1.0',
-            `Subject: ${utf8Subject}`,
-            '',
-            `${text}`,
-  ];
-  const message = messageParts.join('\n');
-         // The body needs to be base64url encoded.
-        const encodedMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        const message = {
+            raw: Buffer.from(
+                `From: ${processs.env.TRANSPORTER_EMAIL}\n` +
+                `To: ${emailTo}\n` +
+                `Subject: ${subject}\n\n` +
+                `${text}`
+            ).toString('base64')
+        };
         let result=await gmail.users.messages.send({
             userId:`me`,
-        requestBody: {
-            raw: encodedMessage,
-        },
+            requestBody: {
+                raw: message,
+            },
         })
 
         console.log("email sent successfully", result.data)
