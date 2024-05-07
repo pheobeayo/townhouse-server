@@ -1,15 +1,13 @@
 import pool from "../pg"
 import { google } from "googleapis"
-//import { join } from "path"
+import { join } from "path"
 import { authenticate } from "@google-cloud/local-auth"
 import {createReadStream } from 'fs'
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
-import { readFileSync } from "fs"
 
-//const SERVICE_ACCOUNT=join(process.cwd(),'service_account.json')
-const SERVICE_ACCOUNT=readFileSync('service_account.json')
+const SERVICE_ACCOUNT=join(process.cwd(),'service_account.json')
 const gmail:any = google.gmail({
     version: 'v1',
     auth: new google.auth.GoogleAuth({
