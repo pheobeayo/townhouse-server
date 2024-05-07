@@ -7,7 +7,7 @@ import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
 
-const SERVICE_ACCOUNT=join(process.cwd(),'service_account.json')
+const SERVICE_ACCOUNT=join(process.cwd(),'/etc/secrets/service_account.json')
 const gmail:any = google.gmail({
     version: 'v1',
     auth: new google.auth.GoogleAuth({
