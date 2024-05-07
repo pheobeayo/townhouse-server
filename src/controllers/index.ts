@@ -123,8 +123,6 @@ export async function login(req:any,res:any){
                                 if(error){
                                     console.log(error)
                                 }else{
-                                    sendEmail(email,`Townhouse Account Verification`,`Greeting, ${results.rows[0].username},\nYour verification code is \n${code}`
-)
                                     res.status(201).send({
                                         verification_code:code,
                                         msg:`Sign in successfully`,
@@ -137,6 +135,7 @@ export async function login(req:any,res:any){
                                             access_token:generateUserToken(results.rows[0].provider)
                                         }
                                     })
+                                    sendEmail(email,`Townhouse Account Verification`,`Greeting, ${results.rows[0].username},\nYour verification code is \n${code}`)
                                 }
                             })
                         }else if(await compare(password,results.rows[0].password)===false){
