@@ -119,7 +119,7 @@ export async function login(req:any,res:any){
                 }else{
                     if(results.rows[0]){
                         if(results.rows[0].email&&await compare(password,results.rows[0].password)){
-                            pool.query('UPDATE users SET last_time_loggedin=$1, user_browser= $2, ip_address=$3 WHERE email = $4 RETURNING *',[last_time_loggedin,user_browser, clientIp,results.rows[0].email],(error,results)=>{
+                            pool.query('UPDATE users SET user_browser= $1, ip_address=$2 WHERE email = $3 RETURNING *',[user_browser, clientIp,results.rows[0].email],(error,results)=>{
                                 if(error){
                                     console.log(error)
                                 }else{
