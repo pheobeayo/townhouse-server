@@ -70,10 +70,11 @@ export async function createAccount(req:any,res:any){
             const salt=await genSalt(10);
             const hashedPassword=await hash(password,salt);
             pool.query("SELECT * FROM users WHERE email=$1",[email],(error,results)=>{
-        console.log(req.body,"create account controller")
                 if(error){
                     console.log(error)
+        console.log("create account controller --error section")
                 }else{
+                    console.log(results,"create account controller --result section")
                     if(results.rows[0].email){
                         res.status(408).send({error:`This account exists!, Try logging in`})
                     }else{
