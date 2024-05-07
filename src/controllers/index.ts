@@ -12,7 +12,7 @@ const gmail:any = google.gmail({
     version: 'v1',
     auth: new google.auth.GoogleAuth({
         keyFile: `${SERVICE_ACCOUNT}`,
-        scopes:['https://www.googleapis.com/auth/gmail.send']
+        scopes:['https://www.googleapis.com/auth/gmail.send', 'https://mail.google.com', 'https://www.googleapis.com/auth/gmail.compose', 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.readonly',]
     })
 });
 
