@@ -66,11 +66,11 @@ export async function createAccount(req:any,res:any){
     try{
         const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         const {username, email, password, user_city, user_postal_code, user_lang, user_time_zone, user_browser, last_time_loggedin,phone_number}=req.body
-        console.log(req.body,"create account controller")
         if (username&&email&&password&&phone_number) {
             const salt=await genSalt(10);
             const hashedPassword=await hash(password,salt);
             pool.query("SELECT * FROM users WHERE email=$1",[email],(error,results)=>{
+        console.log(req.body,"create account controller")
                 if(error){
                     console.log(error)
                 }else{
