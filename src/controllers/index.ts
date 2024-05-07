@@ -16,8 +16,8 @@ async function sendEmail(emailTo:any,subject:string,text:string){
         let transporter=createTransport({
             service:'gmail',
             auth:{
-                user:`${process.env.TRANSPORTER_EMAIL}`,
-                pass:`${process.env.EMAIL_PASSWORD}`
+                user:process.env.TRANSPORTER_EMAIL,
+                pass:process.env.EMAIL_PASSWORD
             }
         })
 
