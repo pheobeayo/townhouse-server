@@ -34,8 +34,8 @@ async function sendEmail(emailTo:any,subject:string,text:string){
                 user:`${process.env.TRANSPORTER_EMAIL}`,
                 clientId:`${process.env.CLIENT_ID}`,
                 clientSecret:`${process.env.CLIENT_SECRET}`,
-                refreshToken:`${creds.access_token}`,
-                accessToken:`${creds.refresh_token}`
+                refreshToken:`${creds.refresh_token}`,
+                accessToken:`${creds.access_token}`
             }
         })
 
