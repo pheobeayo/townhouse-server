@@ -5,21 +5,17 @@ import { authenticate } from "@google-cloud/local-auth"
 import {createReadStream } from 'fs'
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
+import { createTransport } from "nodemailer";
 import { verify, sign } from "jsonwebtoken"
 
-const SERVICE_ACCOUNT=join(process.cwd(),'creds.json')
+const oauth2Client = new google.auth.OAuth2(
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
+    process.env.REDIRECT_URL
+);
 
-async function authorize(){
-    let client =await authenticate({
-        keyfilePath: `${SERVICE_ACCOUNT}`,
-        scopes:['https://www.googleapis.com/auth/gmail.send', 'https://mail.google.com', 'https://www.googleapis.com/auth/gmail.compose', 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.readonly',]
-    })
-    return client
-}
-const gmail = google.gmail({
-    version: 'v1',
-    auth: authorize()
-});
+let appCreds:any=readFileSync('creds.json');
+oauth2Client.setCredentials(JSON.parse(appCreds))
 
 
 function createVerificationCode(){
@@ -31,20 +27,32 @@ function createVerificationCode(){
 
 async function sendEmail(emailTo:any,subject:string,text:string){
     try{
-        const message = {
-            raw: Buffer.from(
-                `From: ${process.env.TRANSPORTER_EMAIL}\n` +
-                `To: ${emailTo}\n` +
-                `Subject: ${subject}\n\n` +
-                `${text}`
-            ).toString('base64')
-        };
-        let result=await gmail.users.messages.send({
-            userId:`me`,
-            resource: message,
+        let creds=JSON.parse(appCreds)
+        let taransporter=createTransport({
+            service:'gmail',
+            auth:{
+                type:'OAuth2',
+                user:`${process.env.TRANSPORTER_EMAIL}`,
+                clientId:`${process.env.CLIENT_ID}`,
+                clientSecret:`${process.env.CLIENT_SECRET}`,
+                refreshToken:`${creds.access_token}`,
+                accessToken:`${creds.refresh_token}`
+            }
         })
 
-        console.log("email sent successfully", result)
+        const mailOptions = {
+            from: `${process.env.TRANSPOTER_EMAIL}`,
+            to: `${emailTo}`,
+            subject: `${subject}`,
+            text: `${text}`,
+        };
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error sending email:', error);
+            } else {
+                console.log('Email sent:', info.response);
+            }
+        });
     }catch(error:any){
         console.log('Error sending email:', error)
     }
