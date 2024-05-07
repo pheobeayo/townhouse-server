@@ -5,7 +5,6 @@ import { authenticate } from "@google-cloud/local-auth"
 import {createReadStream, readFileSync } from 'fs'
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
-import { createTransport } from "nodemailer";
 import { verify, sign } from "jsonwebtoken"
 
 const oauth2Client = new google.auth.OAuth2(
@@ -41,7 +40,7 @@ async function sendEmail(emailTo:any,subject:string,text:string){
         })
 
         const mailOptions = {
-            from: `${process.env.TRANSPOTER_EMAIL}`,
+            from: `${process.env.TRANSPORTER_EMAIL}`,
             to: `${emailTo}`,
             subject: `${subject}`,
             text: `${text}`,
