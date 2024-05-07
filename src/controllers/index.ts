@@ -8,13 +8,13 @@ import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
 
 const SERVICE_ACCOUNT=join(process.cwd(),'service_account.json')
-
-const gmail=google.gmail('v1');
-const auth = await authenticate({
-    keyFile: `${SERVICE_ACCOUNT}`,
-    scopes:['https://www.googleapis.com/auth/gmail.send', 'https://mail.google.com', 'https://www.googleapis.com/auth/gmail.compose', 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.readonly',]
+const gmail = google.gmail({
+    version: 'v1',
+    auth: new google.auth.GoogleAuth({
+        keyFile: `${SERVICE_ACCOUNT}`,
+        scopes:['https://www.googleapis.com/auth/gmail.send', 'https://mail.google.com', 'https://www.googleapis.com/auth/gmail.compose', 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/gmail.readonly',]
+    })
 });
-google.options({auth})
 
 
 function createVerificationCode(){
