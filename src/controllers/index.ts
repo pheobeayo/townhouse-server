@@ -76,7 +76,7 @@ export async function createAccount(req:any,res:any){
                     if(results.rows[0].email){
                         res.status(408).send({error:`This account exists!, Try logging in`})
                     }else{
-                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider, ip_address, user_city, user_postal_code,user_lang) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser,'townhouse',clientIp,user_city,user_postl_code,user_lang,phone_number],(error, results) => {
+                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider, ip_address, user_city, user_postal_code,user_lang) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser,'townhouse',clientIp,user_city,user_postal_code,user_lang,phone_number],(error, results) => {
                             if (error) {
                                 console.log(error)
                                 res.status(408).send({error:`Account using ${email} already exist!`})
