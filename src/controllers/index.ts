@@ -1,23 +1,10 @@
 import pool from "../pg"
-import { google } from "googleapis"
-import { join } from "path"
-import { authenticate } from "@google-cloud/local-auth"
-import {createReadStream } from 'fs'
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
 
-const SERVICE_ACCOUNT=join(process.cwd(),'service_account.json')
-const gmail:any = google.gmail({
-    version: 'v1',
-    auth: new google.auth.GoogleAuth({
-        keyFile: `${SERVICE_ACCOUNT}`,
-        scopes:['https://www.googleapis.com/auth/gmail.send']
-    })
-});
 
-
-function createVerificationCode(id:string){
+function createVerificationCode(){
     let date=new Date()
     let min=date.getMinutes()<10?`0${date.getMinutes()}`:date.getMinutes()
     let code=`${min}${date.getFullYear()}`
@@ -26,19 +13,27 @@ function createVerificationCode(id:string){
 
 async function sendEmail(emailTo:any,subject:string,text:string){
     try{
-        let email={
-            to:`${emailTo}`,
-            from:`${process.env.TRANSPORTER_EMAIL}`,
-            subject,
-            text
-        }
-        
-        let result=await gmail.users.messages.send({
-            userId:`${process.env.TRANSPORTER_EMAIL}`,
-            resource:email,
+        let transporter=createTransport({
+            service:'gmail',
+            auth:{
+                user:`${process.env.TRANSPORTER_EMAIL}`,
+                pass:`${process.env.EMAIL_PASSWORD}`
+            }
         })
 
-        console.log("email sent successfully", result.data)
+        const mailOptions = {
+            from: `${process.env.TRANSPORTER_EMAIL}`,
+            to: `${emailTo}`,
+            subject: `${subject}`,
+            text: `${text}`,
+        };
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error('Error sending email:', error);
+            } else {
+                console.log('Email sent:', info.response);
+            }
+        });
     }catch(error:any){
         console.log('Error sending email:', error)
     }
@@ -46,8 +41,8 @@ async function sendEmail(emailTo:any,subject:string,text:string){
 
 export async function verifyEmail(req:any,res:any){
     try{
-        const {email, code}=req.body
-        //let code=createVerificationCode()
+        const {email}=req.body
+        let code=createVerificationCode()
 
         pool.query('SELECT * FROM users WHERE email = $1',[email],(error,results)=>{
         if(!results.rows[0]){
@@ -73,10 +68,9 @@ export async function createAccount(req:any,res:any){
                 if(error){
                     console.log(error)
                 }else{
-                    if(results.rows[0].email){
-                        res.status(408).send({error:`This account exists!, Try logging in`})
-                    }else{
-                        pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider, ip_address, user_city, user_postal_code,user_lang) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser,'townhouse',clientIp,user_city,user_postl_code,user_lang,phone_number],(error, results) => {
+                    console.log(results.rows, results.rows.length)
+                    if(results.rows.length===0){
+                        pool.query('INSERT INTO users (username, email, password, user_browser, provider, ip_address, user_city, user_postal_code,user_lang,phone_number) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *', [username, email, hashedPassword, user_browser,'townhouse',clientIp,user_city,user_postal_code,user_lang,phone_number],(error, results) => {
                             if (error) {
                                 console.log(error)
                                 res.status(408).send({error:`Account using ${email} already exist!`})
@@ -94,6 +88,8 @@ export async function createAccount(req:any,res:any){
                                 })
                             }
                         })
+                    }else{
+                        res.status(408).send({error:`This account exists!, Try logging in`})
                     }
                 }
             })       
@@ -107,6 +103,7 @@ export async function createAccount(req:any,res:any){
 
 export async function login(req:any,res:any){
     try{
+        let code=createVerificationCode()
         const clientIp= req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         const {email, password, last_time_loggedin, user_browser}=req.body
         if(email&&password&&last_time_loggedin){
@@ -117,11 +114,12 @@ export async function login(req:any,res:any){
                 }else{
                     if(results.rows[0]){
                         if(results.rows[0].email&&await compare(password,results.rows[0].password)){
-                            pool.query('UPDATE users SET last_time_loggedin=$1, user_browser= $2, ip_address=$3 WHERE email = $4 RETURNING *',[last_time_loggedin,user_browser, clientIp,results.rows[0].email],(error,results)=>{
+                            pool.query('UPDATE users SET user_browser= $1, ip_address=$2 WHERE email = $3 RETURNING *',[user_browser, clientIp,results.rows[0].email],(error,results)=>{
                                 if(error){
                                     console.log(error)
                                 }else{
                                     res.status(201).send({
+                                        verification_code:code,
                                         msg:`Sign in successfully`,
                                         data:{
                                             username:results.rows[0].username,
@@ -132,6 +130,7 @@ export async function login(req:any,res:any){
                                             access_token:generateUserToken(results.rows[0].provider)
                                         }
                                     })
+                                    sendEmail(email,`Townhouse Account Verification`,`Greeting, ${results.rows[0].username},\nYour verification code is \n${code}`)
                                 }
                             })
                         }else if(await compare(password,results.rows[0].password)===false){
