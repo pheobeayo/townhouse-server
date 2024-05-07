@@ -86,6 +86,7 @@ export async function createAccount(req:any,res:any){
                                     data:{
                                         username:results.rows[0].username,
                                         email:results.rows[0].email,
+                                        email_verified:results.rows[0].email_verified,
                                         photo:results.rows[0].photo,
                                         phone_number:results.rows[0].phone_number,
                                         access_token:generateUserToken(results.rows[0].provider)
@@ -124,7 +125,9 @@ export async function login(req:any,res:any){
                                         msg:`Sign in successfully`,
                                         data:{
                                             username:results.rows[0].username,
+                                            email_verified:results.rows[0].email_verified,
                                             photo:results.rows[0].photo,
+                                            phone_number:results.rows[0].phone_number,
                                             email:results.rows[0].email,
                                             access_token:generateUserToken(results.rows[0].provider)
                                         }
@@ -192,6 +195,8 @@ export async function getUserDetails(req:any,res:any){
                         data:{
                             username:results.rows[0].username,
                             email:results.rows[0].email,
+                            email_verified:results.rows[0].email_verified,
+                            phone_number:results.rows[0].phone_number,
                             photo:results.rows[0].photo,
                             access_token:generateUserToken(results.rows[0].provider)
                         }
@@ -220,6 +225,8 @@ export async function authenticateUserWithAccessToken(req:any,res:any){
                     let data:any={
                         username:results.rows[0].username,
                         email:results.rows[0].email,
+                        email_verified:results.rows[0].email_verified,
+                        phone_number:results.rows[0].phone_number,
                         photo:results.rows[0].photo,
                         access_token:results.rows[0].access_token
                     }
