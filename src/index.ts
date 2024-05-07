@@ -23,7 +23,7 @@ app.use(passport.session());
 app.use(passport.authenticate('session'));
 
 const cors_option = {
-  origin:["http://localhost:3000"],
+  origin:["http://localhost:3000","https://townhouse-webapp.web.app"],
   methods: ["GET", "POST", "DELETE", "UPDATE", "PATCH", "PUT"]
 }
 
