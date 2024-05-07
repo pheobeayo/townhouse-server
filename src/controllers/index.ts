@@ -72,12 +72,8 @@ export async function createAccount(req:any,res:any){
             pool.query("SELECT * FROM users WHERE email=$1",[email],(error,results)=>{
                 if(error){
                     console.log(error)
-        console.log("create account controller --error section")
                 }else{
-                    console.log(results,"create account controller --result section")
-                    if(results.rows[0].email){
-                        res.status(408).send({error:`This account exists!, Try logging in`})
-                    }else{
+                    if(!results.rows[0].email){
                         pool.query('INSERT INTO users (username, email, password, last_time_loggedin, user_browser, provider, ip_address, user_city, user_postal_code,user_lang) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *', [username, email, hashedPassword, last_time_loggedin, user_browser,'townhouse',clientIp,user_city,user_postal_code,user_lang,phone_number],(error, results) => {
                             if (error) {
                                 console.log(error)
@@ -96,6 +92,8 @@ export async function createAccount(req:any,res:any){
                                 })
                             }
                         })
+                    }else{
+                        res.status(408).send({error:`This account exists!, Try logging in`})
                     }
                 }
             })       
