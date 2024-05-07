@@ -33,7 +33,7 @@ async function sendEmail(emailTo:any,subject:string,text:string){
     try{
         const message = {
             raw: Buffer.from(
-                `From: ${processs.env.TRANSPORTER_EMAIL}\n` +
+                `From: ${process.env.TRANSPORTER_EMAIL}\n` +
                 `To: ${emailTo}\n` +
                 `Subject: ${subject}\n\n` +
                 `${text}`
@@ -41,9 +41,7 @@ async function sendEmail(emailTo:any,subject:string,text:string){
         };
         let result=await gmail.users.messages.send({
             userId:`me`,
-            requestBody: {
-                raw: message,
-            },
+            resource: message,
         })
 
         console.log("email sent successfully", result.data)
