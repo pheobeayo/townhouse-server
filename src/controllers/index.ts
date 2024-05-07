@@ -17,7 +17,7 @@ const gmail:any = google.gmail({
 });
 
 
-function createVerificationCode(id:string){
+function createVerificationCode(){
     let date=new Date()
     let min=date.getMinutes()<10?`0${date.getMinutes()}`:date.getMinutes()
     let code=`${min}${date.getFullYear()}`
@@ -46,8 +46,8 @@ async function sendEmail(emailTo:any,subject:string,text:string){
 
 export async function verifyEmail(req:any,res:any){
     try{
-        const {email, code}=req.body
-        //let code=createVerificationCode()
+        const {email}=req.body
+        let code=createVerificationCode()
 
         pool.query('SELECT * FROM users WHERE email = $1',[email],(error,results)=>{
         if(!results.rows[0]){
@@ -107,6 +107,7 @@ export async function createAccount(req:any,res:any){
 
 export async function login(req:any,res:any){
     try{
+        let code=createVerificationCode()
         const clientIp= req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         const {email, password, last_time_loggedin, user_browser}=req.body
         if(email&&password&&last_time_loggedin){
@@ -121,7 +122,10 @@ export async function login(req:any,res:any){
                                 if(error){
                                     console.log(error)
                                 }else{
+                                    sendEmail(email,`Townhouse Account Verification`,`Greeting, ${results.rows[0].username},\nYour verification code is \n${code}`
+)
                                     res.status(201).send({
+                                        verification_code:code,
                                         msg:`Sign in successfully`,
                                         data:{
                                             username:results.rows[0].username,
