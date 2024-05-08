@@ -9,7 +9,7 @@ create table users(
     refresh_token varchar,
     user_DOB varchar,
     password varchar not null,
-    phone_number int unique,
+    phone_number varchar(15),
     photo varchar,
     user_browser varchar not null,
     user_city varchar,
