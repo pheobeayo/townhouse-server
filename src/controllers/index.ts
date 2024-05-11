@@ -83,8 +83,8 @@ export async function createAccount(req:any,res:any){
                                         email_verified:results.rows[0].email_verified,
                                         photo:results.rows[0].photo,
                                         phone_number:results.rows[0].phone_number,
-                                        access_token:generateUserToken(results.rows[0].provider)
-                                        location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`,
+                                        access_token:generateUserToken(results.rows[0].provider),
+                                        location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`
                                     }
                                 })
                             }
@@ -274,7 +274,8 @@ export async function authenticateUserWithAccessToken(req:any,res:any){
                         email_verified:results.rows[0].email_verified,
                         phone_number:results.rows[0].phone_number,
                         photo:results.rows[0].photo,
-                        access_token:results.rows[0].access_token
+                        access_token:results.rows[0].access_token,
+                        location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`
                     }
                     res.status(400).send({
                         msg:`Authenticated successfully`,
