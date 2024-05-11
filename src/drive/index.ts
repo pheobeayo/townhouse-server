@@ -15,6 +15,9 @@ const service:any = google.drive({
     auth: oauth2Client
 });
 
+let driveFolderId:any=readFileSync('drive_folder_id.json')
+const folder_id=driveFolderId.id
+
 const drive=express.Router()
 
 const handleAuth=async(req:any,res:any,next:any)=>{
@@ -61,9 +64,8 @@ drive.get('/auth/redirect',async(req:any,res:any)=>{
 });
 
 //upload file
-drive.post('/upload/:type/:folder_id',handleAuth,async(req:any, res:any) => {
+drive.post('/upload',handleAuth,async(req:any, res:any) => {
     try {
-        const {folder_id,type}=req.params
         var form =formidable({
             keepExtensions:true,
             maxFileSize:10 * 1024 * 1024 //10mbs
@@ -86,13 +88,8 @@ drive.post('/upload/:type/:folder_id',handleAuth,async(req:any, res:any) => {
                 }
             );
             if(response.data){
-                if(type==='users'){
-                    console.log(`${files.originalFilename} uploaded to folder ${folder_id} in drive`);
-                    res.send({id:response.data.id});
-                }else if(type==='groups'){
-                    console.log(`${files.originalFilename} uploaded to drive group folder ${folder_id} `);
-                    res.send({id:response.data.id});
-                }
+                console.log(`${files.originalFilename} uploaded to drive folder `);
+                res.send({id:response.data.id});
             }else{
                 res.send({error:'File upload error!'})
                 console.log({error:response})
@@ -127,6 +124,9 @@ drive.post('/create_folder',handleAuth,async(req:any, res:any) => {
             fields: 'id',
         });
         console.log('Folder Id:', response.data.id);
+        writeFileSync('drive_folder_id.json',JSON.stringify({
+            id:response.data.id
+        }))
         res.send({id:response.data.id})
         await service.permissions.create({
           'fileId':response.data.id,

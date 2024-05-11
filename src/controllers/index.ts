@@ -204,7 +204,7 @@ export async function addEvent(req:any,res:any){
 
 export async function getEvents(req:any,res:any){
     try{
-        pool.query('SELECT * FROM events', (error, results) => {
+        pool.query('SELECT * FROM events WHERE privacy=false', (error, results) => {
             if (error) {
                 console.log(error)
                 res.status(404).send({error:`Failed to get events.`})
@@ -222,7 +222,7 @@ export async function getEvents(req:any,res:any){
 export async function getEvent(req:any,res:any){
     try{
         const {id}=req.params
-        pool.query('SELECT * FROM events WHERE id=$1',[id], (error, results) => {
+        pool.query('SELECT * FROM events WHERE id=$1 AND privacy=false',[id], (error, results) => {
             if (error) {
                 console.log(error)
                 res.status(404).send({error:`Failed to get this event.`})
