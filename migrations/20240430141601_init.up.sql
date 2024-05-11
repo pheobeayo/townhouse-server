@@ -42,7 +42,7 @@ create index community_idx on communities (community_name);
 
 -- events table
 create table events(
-    id auto increment primary key,
+    id varchar primary key,
     host varchar not null,
     creator_email varchar not null, 
     title varchar not null,
