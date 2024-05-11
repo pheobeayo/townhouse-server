@@ -22,6 +22,7 @@ create table users(
     ip_address varchar unique,
     last_time_loggedin TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     communities varchar[],
+    interest varchar[],
     friends varchar[]
 );
 create index user_idx on users (email);
@@ -31,9 +32,10 @@ create table communities(
     creator_email varchar not null, 
     community_name varchar not null primary key,
     community_description varchar,
+    communty_location varchar,
     community_tags varchar[],
     community_photo varchar,
-    public boolean,
+    privacy boolean default false,
     members varchar[]
 );
 create index community_idx on communities (community_name);
@@ -49,6 +51,11 @@ create table events(
     event_tags varchar[],
     event_photo varchar,
     likes varchar[],
-    comments varchar[]
+    comments varchar[],
+    date varchar,
+    starting_time varchar,
+    event_location varchar,
+    attendees varchar[],
+    privacy boolean default false
 );
-create index community_idx on events (community_name);
+create index events_idx on events (title);

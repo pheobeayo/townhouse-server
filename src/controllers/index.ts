@@ -168,7 +168,34 @@ export async function getUsers(req:any,res:any){
 
 export async function addEvent(req:any,res:any){
     try{
-        const {}=req.body
+        const {host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location}=req.body
+        pool.query('INSERT INTO events (host,creator_email,title,sub_title, description,event_tags,event_photo,date, starting_time,event_location) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *',[host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location],(error,results)=>{
+            if(error){
+                console.log(error)
+                res.status(201).send({error:"Failed to post event"})
+            }else{
+                let data={
+                    id:results.rows[0].id,
+                    image:results.rows[0].event_photo,
+                    title:results.rows[0].title,
+                    description:results.rows[0].description,
+                    subTitle:results.rows[0].sub_title,
+                    host:results.rows[0].host,
+                    date:results.rows[0].date,
+                    startingTime:results.rows[0].starting_time,
+                    eventLocation:results.rows[0].event_location,
+                    attendees:results.rows[0].attendees,
+                    likes:results.rows[0].likes,
+                    creatorEmail:results.rows[0].creator_email,
+                    eventTags:results.rows[0].event_tags,
+                    comments:results.rows[0].comments,
+                    privacy:results.rows[0].privacy
+                }
+                res.status(200).send({
+                    data
+                })
+            }
+        })
     } catch (error:any) {
         res.status(500).send({error:error.message})
     }
@@ -182,7 +209,7 @@ export async function getEvents(req:any,res:any){
                 console.log(error)
                 res.status(404).send({error:`Failed to get events.`})
             }else{
-                res.status(200).json(results.rows)
+                res.status(200).json({data:results.rows})
             }
         })
 
@@ -195,12 +222,31 @@ export async function getEvents(req:any,res:any){
 export async function getEvent(req:any,res:any){
     try{
         const {id}=req.params
-        pool.query('SELECT * FROM users WHERE id=$1',[id], (error, results) => {
+        pool.query('SELECT * FROM events WHERE id=$1',[id], (error, results) => {
             if (error) {
                 console.log(error)
                 res.status(404).send({error:`Failed to get this event.`})
             }else{
-                res.status(200).json(results.rows[0])
+                let data={
+                    id:results.rows[0].id,
+                    image:results.rows[0].event_photo,
+                    title:results.rows[0].title,
+                    description:results.rows[0].description,
+                    subTitle:results.rows[0].sub_title,
+                    host:results.rows[0].host,
+                    date:results.rows[0].date,
+                    startingTime:results.rows[0].starting_time,
+                    eventLocation:results.rows[0].event_location,
+                    attendees:results.rows[0].attendees,
+                    likes:results.rows[0].likes,
+                    creatorEmail:results.rows[0].creator_email,
+                    eventTags:results.rows[0].event_tags,
+                    comments:results.rows[0].comments,
+                    privacy:results.rows[0].privacy
+                }
+                res.status(200).send({
+                    data
+                })
             }
         })
     } catch (error:any) {
