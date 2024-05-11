@@ -16,8 +16,8 @@ async function sendEmail(emailTo:any,subject:string,text:string){
         let transporter=createTransport({
             service:'gmail',
             auth:{
-                user:`${process.env.TRANSPORTER_EMAIL}`,
-                pass:`${process.env.EMAIL_PASSWORD}`
+                user:process.env.TRANSPORTER_EMAIL,
+                pass:process.env.EMAIL_PASSWORD
             }
         })
 
@@ -83,7 +83,8 @@ export async function createAccount(req:any,res:any){
                                         email_verified:results.rows[0].email_verified,
                                         photo:results.rows[0].photo,
                                         phone_number:results.rows[0].phone_number,
-                                        access_token:generateUserToken(results.rows[0].provider)
+                                        access_token:generateUserToken(results.rows[0].provider),
+                                        location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`
                                     }
                                 })
                             }
@@ -127,6 +128,7 @@ export async function login(req:any,res:any){
                                             photo:results.rows[0].photo,
                                             phone_number:results.rows[0].phone_number,
                                             email:results.rows[0].email,
+                                            location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`,
                                             access_token:generateUserToken(results.rows[0].provider)
                                         }
                                     })
@@ -164,6 +166,96 @@ export async function getUsers(req:any,res:any){
     }
 }
 
+export async function addEvent(req:any,res:any){
+    try{
+        const {host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location}=req.body
+        pool.query('INSERT INTO events (host,creator_email,title,sub_title, description,event_tags,event_photo,date, starting_time,event_location) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *',[host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location],(error,results)=>{
+            if(error){
+                console.log(error)
+                res.status(201).send({error:"Failed to post event"})
+            }else{
+                let data={
+                    id:results.rows[0].id,
+                    image:results.rows[0].event_photo,
+                    title:results.rows[0].title,
+                    description:results.rows[0].description,
+                    subTitle:results.rows[0].sub_title,
+                    host:results.rows[0].host,
+                    date:results.rows[0].date,
+                    startingTime:results.rows[0].starting_time,
+                    eventLocation:results.rows[0].event_location,
+                    attendees:results.rows[0].attendees,
+                    likes:results.rows[0].likes,
+                    creatorEmail:results.rows[0].creator_email,
+                    eventTags:results.rows[0].event_tags,
+                    comments:results.rows[0].comments,
+                    privacy:results.rows[0].privacy
+                }
+                res.status(200).send({
+                    data
+                })
+            }
+        })
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+
+}
+
+export async function getEvents(req:any,res:any){
+    try{
+        pool.query('SELECT * FROM events', (error, results) => {
+            if (error) {
+                console.log(error)
+                res.status(404).send({error:`Failed to get events.`})
+            }else{
+                res.status(200).json({data:results.rows})
+            }
+        })
+
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+
+}
+
+export async function getEvent(req:any,res:any){
+    try{
+        const {id}=req.params
+        pool.query('SELECT * FROM events WHERE id=$1',[id], (error, results) => {
+            if (error) {
+                console.log(error)
+                res.status(404).send({error:`Failed to get this event.`})
+            }else{
+                let data={
+                    id:results.rows[0].id,
+                    image:results.rows[0].event_photo,
+                    title:results.rows[0].title,
+                    description:results.rows[0].description,
+                    subTitle:results.rows[0].sub_title,
+                    host:results.rows[0].host,
+                    date:results.rows[0].date,
+                    startingTime:results.rows[0].starting_time,
+                    eventLocation:results.rows[0].event_location,
+                    attendees:results.rows[0].attendees,
+                    likes:results.rows[0].likes,
+                    creatorEmail:results.rows[0].creator_email,
+                    eventTags:results.rows[0].event_tags,
+                    comments:results.rows[0].comments,
+                    privacy:results.rows[0].privacy
+                }
+                res.status(200).send({
+                    data
+                })
+            }
+        })
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+
+}
+
+
 
 export async function protectUser(req:any,res:any,next:any){
     let token
@@ -197,6 +289,7 @@ export async function getUserDetails(req:any,res:any){
                             email_verified:results.rows[0].email_verified,
                             phone_number:results.rows[0].phone_number,
                             photo:results.rows[0].photo,
+                            location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`,
                             access_token:generateUserToken(results.rows[0].provider)
                         }
                     })
@@ -227,7 +320,8 @@ export async function authenticateUserWithAccessToken(req:any,res:any){
                         email_verified:results.rows[0].email_verified,
                         phone_number:results.rows[0].phone_number,
                         photo:results.rows[0].photo,
-                        access_token:results.rows[0].access_token
+                        access_token:results.rows[0].access_token,
+                        location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`
                     }
                     res.status(400).send({
                         msg:`Authenticated successfully`,

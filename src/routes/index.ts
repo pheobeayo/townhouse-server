@@ -11,6 +11,9 @@ import {
     getUsers,
     getUserDetails,
     authenticateUserWithAccessToken,
+    addEvent,
+    getEvents,
+    getEvent,
 } from "../controllers"
 config();
 
@@ -45,4 +48,7 @@ router.get('/users',protectUser,getUsers)
 router.get('/authenticate/:access_token', authenticateUserWithAccessToken)
 router.get('/users/:email',protectUser,getUserDetails)
 
+router.post("/event",protectUser,addEvent)
+router.get("/events",protectUser,getEvents)
+router.get("/events/:id",protectUser,getEvent)
 export default router;
