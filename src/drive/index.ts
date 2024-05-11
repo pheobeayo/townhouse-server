@@ -15,22 +15,14 @@ const service:any = google.drive({
     auth: oauth2Client
 });
 
-let driveFolderId:any=readFileSync('drive_folder_id.json')
-const folder_id=driveFolderId.id
 
 const drive=express.Router()
 
 const handleAuth=async(req:any,res:any,next:any)=>{
     try{
-        if(req.headers.authorization){
-            let userToken=req.headers.authorization
-            let appCreds:any=readFileSync('creds.json');
-            const authenticateApp=oauth2Client.setCredentials(JSON.parse(appCreds))
-            console.log(authenticateApp,userToken)
-            next()
-        }else{
-            res.status(401).send({error:'No Token Available☠'})
-        }
+        let appCreds:any=readFileSync('creds.json');
+        const authenticateApp=oauth2Client.setCredentials(JSON.parse(appCreds))
+        next()
     }catch (error:any){
         res.status(401).send({error:'Not Authorised☠'})
         console.log(error)
@@ -66,6 +58,9 @@ drive.get('/auth/redirect',async(req:any,res:any)=>{
 //upload file
 drive.post('/upload',handleAuth,async(req:any, res:any) => {
     try {
+        let driveFolderId:any=readFileSync('drive_folder_id.json')
+        const folder_id=driveFolderId.id||process.env.DRIVE_FOLDER_ID
+
         var form =formidable({
             keepExtensions:true,
             maxFileSize:10 * 1024 * 1024 //10mbs
@@ -113,7 +108,7 @@ drive.delete('/delete/file/:id',handleAuth,async(req:any, res:any) => {
 
 
 //create drive folder
-drive.post('/create_folder',handleAuth,async(req:any, res:any) => {
+drive.get('/create_folder',handleAuth,async(req:any, res:any) => {
     try {
         const fileMetadata = {
             name: `Townhouse`,
