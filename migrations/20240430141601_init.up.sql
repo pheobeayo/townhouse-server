@@ -37,3 +37,18 @@ create table communities(
     members varchar[]
 );
 create index community_idx on communities (community_name);
+
+-- events table
+create table events(
+    id auto increment primary key,
+    host varchar not null,
+    creator_email varchar not null, 
+    title varchar not null,
+    sub_title varchar,
+    description varchar,
+    event_tags varchar[],
+    event_photo varchar,
+    likes varchar[],
+    comments varchar[]
+);
+create index community_idx on events (community_name);

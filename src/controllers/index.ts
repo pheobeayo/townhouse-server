@@ -84,6 +84,7 @@ export async function createAccount(req:any,res:any){
                                         photo:results.rows[0].photo,
                                         phone_number:results.rows[0].phone_number,
                                         access_token:generateUserToken(results.rows[0].provider)
+                                        location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`,
                                     }
                                 })
                             }
@@ -127,6 +128,7 @@ export async function login(req:any,res:any){
                                             photo:results.rows[0].photo,
                                             phone_number:results.rows[0].phone_number,
                                             email:results.rows[0].email,
+                                            location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`,
                                             access_token:generateUserToken(results.rows[0].provider)
                                         }
                                     })
@@ -164,6 +166,50 @@ export async function getUsers(req:any,res:any){
     }
 }
 
+export async function addEvent(req:any,res:any){
+    try{
+        const {}=req.body
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+
+}
+
+export async function getEvents(req:any,res:any){
+    try{
+        pool.query('SELECT * FROM events', (error, results) => {
+            if (error) {
+                console.log(error)
+                res.status(404).send({error:`Failed to get events.`})
+            }else{
+                res.status(200).json(results.rows)
+            }
+        })
+
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+
+}
+
+export async function getEvent(req:any,res:any){
+    try{
+        const {id}=req.params
+        pool.query('SELECT * FROM users WHERE id=$1',[id], (error, results) => {
+            if (error) {
+                console.log(error)
+                res.status(404).send({error:`Failed to get this event.`})
+            }else{
+                res.status(200).json(results.rows[0])
+            }
+        })
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+
+}
+
+
 
 export async function protectUser(req:any,res:any,next:any){
     let token
@@ -197,6 +243,7 @@ export async function getUserDetails(req:any,res:any){
                             email_verified:results.rows[0].email_verified,
                             phone_number:results.rows[0].phone_number,
                             photo:results.rows[0].photo,
+                            location:`${results.rows[0].user_city}, ${results.rows[0].user_country}`,
                             access_token:generateUserToken(results.rows[0].provider)
                         }
                     })
