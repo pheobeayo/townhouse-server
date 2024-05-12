@@ -232,13 +232,13 @@ export async function deleteEvent(req:any,res:any){
                 let deletedFileId=await response.data.id
                 if(deletedFileId){
                     console.log(deletedFileId)
-                    res.status(200).json({
-                        msg:`Event deleted successfully`,
-                        data:{
-                            deletedFileId
-                        }
-                    })
                 }
+                res.status(200).json({
+                    msg:`Event deleted successfully`,
+                    data:{
+                        deletedFileId
+                    }
+                })
             }
         })
 
