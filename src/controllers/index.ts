@@ -168,8 +168,8 @@ export async function getUsers(req:any,res:any){
 
 export async function addEvent(req:any,res:any){
     try{
-        const {host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location}=req.body
-        pool.query('INSERT INTO events (host,creator_email,title,sub_title, description,event_tags,event_photo,date, starting_time,event_location) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *',[host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location],(error,results)=>{
+        const {id,host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location,privacy}=req.body
+        pool.query('INSERT INTO events (id,host,creator_email,title,sub_title, description,event_tags,event_photo,date, starting_time,event_location,privacy) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10,$11,$12) RETURNING *',[id,host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location,privacy],(error,results)=>{
             if(error){
                 console.log(error)
                 res.status(201).send({error:"Failed to post event"})
