@@ -229,15 +229,13 @@ export async function deleteEvent(req:any,res:any){
                 res.status(404).send({error:`Failed to delete this event.`})
             }else{
                 let response=await axios.delete(`${process.env.API_URL}/drive/delete/file/${id}`)
-                let deletedFileId=await response.data.id
-                if(deletedFileId){
-                    console.log(deletedFileId)
+                let parseRes=await response.json()
+                console.log(parseRes)
+                if(parseRes.id){
+                    console.log(parseRes.id)
                 }
                 res.status(200).json({
                     msg:`Event deleted successfully`,
-                    data:{
-                        deletedFileId
-                    }
                 })
             }
         })

@@ -98,7 +98,7 @@ drive.post('/upload',handleAuth,async(req:any, res:any) => {
 //delete drive file
 drive.delete('/delete/file/:id',handleAuth,async(req:any, res:any) => {
   try {
-    var fileId = req.params.id;
+    let fileId = req.params.id;
     const response=await service.files.delete({ 'fileId': fileId })
     res.send({id:response.data.id})
   } catch (error:any) {
