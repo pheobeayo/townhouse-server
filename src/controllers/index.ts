@@ -2,6 +2,7 @@ import pool from "../pg"
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
+import axios from "axios"
 
 
 function createVerificationCode(){
@@ -218,6 +219,35 @@ export async function getEvents(req:any,res:any){
     }
 
 }
+
+export async function deleteEvent(req:any,res:any){
+    try{
+        const {id,creator_email}=req.params
+        pool.query('DELETE FROM events WHERE id=$1 AND creator_email=$2 RETURNING *',[id,creator_email], (error, results) => {
+            if (error) {
+                console.log(error)
+                res.status(404).send({error:`Failed to delete this event.`})
+            }else{
+                let response=await axios.delete(`${process.env.API_URL}/drive/delete/file/${id}`)
+                let deletedFileId=await response.data.id
+                if(deletedFileId){
+                    console.log(deletedFileId)
+                    res.status(200).json({
+                        msg:`Event deleted successfully`,
+                        data:{
+                            deletedFileId
+                        }
+                    })
+                }
+            }
+        })
+
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+
+}
+
 
 export async function getEvent(req:any,res:any){
     try{

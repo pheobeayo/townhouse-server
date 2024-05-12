@@ -14,6 +14,7 @@ import {
     addEvent,
     getEvents,
     getEvent,
+    deleteEvent,
 } from "../controllers"
 config();
 
@@ -51,4 +52,5 @@ router.get('/users/:email',protectUser,getUserDetails)
 router.post("/event",protectUser,addEvent)
 router.get("/events",getEvents)
 router.get("/events/:id",getEvent)
+router.delete("/events/:creator_email/:id",deleteEvent)
 export default router;
