@@ -59,7 +59,7 @@ drive.get('/auth/redirect',async(req:any,res:any)=>{
 drive.post('/upload',handleAuth,async(req:any, res:any) => {
     try {
         let driveFolderId:any=readFileSync('drive_folder_id.json')
-        const folder_id=driveFolderId.id||process.env.DRIVE_FOLDER_ID
+        const folder_id=process.env.DRIVE_FOLDER_ID||JSON.parse(driveFolderId).id
 
         var form =formidable({
             keepExtensions:true,

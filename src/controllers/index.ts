@@ -223,7 +223,7 @@ export async function getEvents(req:any,res:any){
 export async function deleteEvent(req:any,res:any){
     try{
         const {id,creator_email}=req.params
-        pool.query('DELETE FROM events WHERE id=$1 AND creator_email=$2 RETURNING *',[id,creator_email], (error, results) => {
+        pool.query('DELETE FROM events WHERE id=$1 AND creator_email=$2 RETURNING *',[id,creator_email], async(error, results) => {
             if (error) {
                 console.log(error)
                 res.status(404).send({error:`Failed to delete this event.`})
