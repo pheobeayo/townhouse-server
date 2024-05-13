@@ -67,7 +67,8 @@ export async function createAccount(req:any,res:any){
             const hashedPassword=await hash(password,salt);
             pool.query("SELECT * FROM users WHERE email=$1",[email],(error,results)=>{
                 if(error){
-                    console.log(error)
+                    
+                    console.log(error.message)
                 }else{
                     console.log(results.rows, results.rows.length)
                     if(results.rows.length===0){
