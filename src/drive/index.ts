@@ -15,19 +15,14 @@ const service:any = google.drive({
     auth: oauth2Client
 });
 
+
 const drive=express.Router()
 
 const handleAuth=async(req:any,res:any,next:any)=>{
     try{
-        if(req.headers.authorization){
-            let userToken=req.headers.authorization
-            let appCreds:any=readFileSync('creds.json');
-            const authenticateApp=oauth2Client.setCredentials(JSON.parse(appCreds))
-            console.log(authenticateApp,userToken)
-            next()
-        }else{
-            res.status(401).send({error:'No Token Available☠'})
-        }
+        let appCreds:any=readFileSync('creds.json');
+        const authenticateApp=oauth2Client.setCredentials(JSON.parse(appCreds))
+        next()
     }catch (error:any){
         res.status(401).send({error:'Not Authorised☠'})
         console.log(error)
@@ -61,9 +56,11 @@ drive.get('/auth/redirect',async(req:any,res:any)=>{
 });
 
 //upload file
-drive.post('/upload/:type/:folder_id',handleAuth,async(req:any, res:any) => {
+drive.post('/upload',handleAuth,async(req:any, res:any) => {
     try {
-        const {folder_id,type}=req.params
+        let driveFolderId:any=readFileSync('drive_folder_id.json')
+        const folder_id=process.env.DRIVE_FOLDER_ID||JSON.parse(driveFolderId).id
+
         var form =formidable({
             keepExtensions:true,
             maxFileSize:10 * 1024 * 1024 //10mbs
@@ -86,13 +83,8 @@ drive.post('/upload/:type/:folder_id',handleAuth,async(req:any, res:any) => {
                 }
             );
             if(response.data){
-                if(type==='users'){
-                    console.log(`${files.originalFilename} uploaded to folder ${folder_id} in drive`);
-                    res.send({id:response.data.id});
-                }else if(type==='groups'){
-                    console.log(`${files.originalFilename} uploaded to drive group folder ${folder_id} `);
-                    res.send({id:response.data.id});
-                }
+                console.log(`${files.originalFilename} uploaded to drive folder `);
+                res.send({id:response.data.id});
             }else{
                 res.send({error:'File upload error!'})
                 console.log({error:response})
@@ -106,7 +98,7 @@ drive.post('/upload/:type/:folder_id',handleAuth,async(req:any, res:any) => {
 //delete drive file
 drive.delete('/delete/file/:id',handleAuth,async(req:any, res:any) => {
   try {
-    var fileId = req.params.id;
+    let fileId = req.params.id;
     const response=await service.files.delete({ 'fileId': fileId })
     res.send({id:response.data.id})
   } catch (error:any) {
@@ -116,7 +108,7 @@ drive.delete('/delete/file/:id',handleAuth,async(req:any, res:any) => {
 
 
 //create drive folder
-drive.post('/create_folder',handleAuth,async(req:any, res:any) => {
+drive.get('/create_folder',handleAuth,async(req:any, res:any) => {
     try {
         const fileMetadata = {
             name: `Townhouse`,
@@ -127,6 +119,9 @@ drive.post('/create_folder',handleAuth,async(req:any, res:any) => {
             fields: 'id',
         });
         console.log('Folder Id:', response.data.id);
+        writeFileSync('drive_folder_id.json',JSON.stringify({
+            id:response.data.id
+        }))
         res.send({id:response.data.id})
         await service.permissions.create({
           'fileId':response.data.id,

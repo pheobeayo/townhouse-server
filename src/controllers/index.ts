@@ -2,6 +2,7 @@ import pool from "../pg"
 import { createTransport } from "nodemailer"
 import {genSalt, compare, hash} from "bcryptjs"
 import { verify, sign } from "jsonwebtoken"
+import axios from "axios"
 
 
 function createVerificationCode(){
@@ -168,8 +169,8 @@ export async function getUsers(req:any,res:any){
 
 export async function addEvent(req:any,res:any){
     try{
-        const {host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location}=req.body
-        pool.query('INSERT INTO events (host,creator_email,title,sub_title, description,event_tags,event_photo,date, starting_time,event_location) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *',[host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location],(error,results)=>{
+        const {id,host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location,privacy}=req.body
+        pool.query('INSERT INTO events (id,host,creator_email,title,sub_title, description,event_tags,event_photo,date, starting_time,event_location,privacy) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10,$11,$12) RETURNING *',[id,host,creator_email,title,sub_title, description,event_tags,event_photo, date, starting_time,event_location,privacy],(error,results)=>{
             if(error){
                 console.log(error)
                 res.status(201).send({error:"Failed to post event"})
@@ -204,7 +205,7 @@ export async function addEvent(req:any,res:any){
 
 export async function getEvents(req:any,res:any){
     try{
-        pool.query('SELECT * FROM events', (error, results) => {
+        pool.query('SELECT * FROM events WHERE privacy=false', (error, results) => {
             if (error) {
                 console.log(error)
                 res.status(404).send({error:`Failed to get events.`})
@@ -219,10 +220,37 @@ export async function getEvents(req:any,res:any){
 
 }
 
+export async function deleteEvent(req:any,res:any){
+    try{
+        const {id,creator_email}=req.params
+        pool.query('DELETE FROM events WHERE id=$1 AND creator_email=$2 RETURNING *',[id,creator_email], async(error, results) => {
+            if (error) {
+                console.log(error)
+                res.status(404).send({error:`Failed to delete this event.`})
+            }else{
+                let response=await axios.delete(`${process.env.API_URL}/drive/delete/file/${results.rows[0].event_photo}`)
+                let parseRes=await response.data
+                console.log(parseRes)
+                if(parseRes.id){
+                    console.log(parseRes.id)
+                }
+                res.status(200).json({
+                    msg:`Event deleted successfully`,
+                })
+            }
+        })
+
+    } catch (error:any) {
+        res.status(500).send({error:error.message})
+    }
+
+}
+
+
 export async function getEvent(req:any,res:any){
     try{
         const {id}=req.params
-        pool.query('SELECT * FROM events WHERE id=$1',[id], (error, results) => {
+        pool.query('SELECT * FROM events WHERE id=$1 AND privacy=false',[id], (error, results) => {
             if (error) {
                 console.log(error)
                 res.status(404).send({error:`Failed to get this event.`})
