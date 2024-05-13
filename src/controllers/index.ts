@@ -73,8 +73,9 @@ export async function createAccount(req:any,res:any){
                     if(results.rows.length===0){
                         pool.query('INSERT INTO users (username, email, password, user_browser, provider, ip_address, user_city, user_postal_code,user_lang,phone_number) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *', [username, email, hashedPassword, user_browser,'townhouse',clientIp,user_city,user_postal_code,user_lang,phone_number],(error, results) => {
                             if (error) {
+                                let errorMessage=error.message==="duplicate key value violates unique constraint "users_username_key""?`Try a different username, username ${username} is taken`:error.message
                                 console.log(error.message)
-                                res.status(408).send({error:`Account using ${email} already exist!`})
+                                res.status(408).send({error:errorMessage})
                             }else{
                                 res.status(201).send({
                                     msg:`Welcome to Townhouse`,
