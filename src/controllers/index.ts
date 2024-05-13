@@ -67,14 +67,13 @@ export async function createAccount(req:any,res:any){
             const hashedPassword=await hash(password,salt);
             pool.query("SELECT * FROM users WHERE email=$1",[email],(error,results)=>{
                 if(error){
-                    
-                    console.log(error.message)
+                    console.log(error)
                 }else{
                     console.log(results.rows, results.rows.length)
                     if(results.rows.length===0){
                         pool.query('INSERT INTO users (username, email, password, user_browser, provider, ip_address, user_city, user_postal_code,user_lang,phone_number) VALUES ($1, $2, $3, $4, $5, $6,$7,$8,$9,$10) RETURNING *', [username, email, hashedPassword, user_browser,'townhouse',clientIp,user_city,user_postal_code,user_lang,phone_number],(error, results) => {
                             if (error) {
-                                console.log(error)
+                                console.log(error.message)
                                 res.status(408).send({error:`Account using ${email} already exist!`})
                             }else{
                                 res.status(201).send({
