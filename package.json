@@ -46,8 +46,8 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "express-session": "^1.18.0",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
     "formidable": "^3.5.1",
     "google-auth-library": "^9.9.0",
     "googleapis": "^135.1.0",
@@ -57,6 +57,6 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.11.5",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.8.0"
   }
 }
